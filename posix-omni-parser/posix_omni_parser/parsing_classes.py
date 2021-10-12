@@ -457,64 +457,70 @@ class Sockaddr(ParsingClass):
         # let's consume all the string_args that belong to the sockaddr structure.
         sockaddr_args = []
         sockaddr_args.append(string_args.pop(0))
-
+         # Lets use these arguments to construct the value of the Sockaddr object.
+        #check if sockaddre is not empty
+        if sockaddr_args[0]=="NULL":
+            self.value = "NULL"
+            return
+        #otherwise
+        else:
+            self.value = []
         # the first argument of sockaddr should start with a '{'
-        assert sockaddr_args[0].startswith("{"), (
-            "First argument of sockaddr "
-            + "structure does not start with a '{'"
-            + "in arguments: "
-            + str(sockaddr_args)
-        )
+            assert sockaddr_args[0].startswith("{"), (
+                "First argument of sockaddr "
+                + "structure does not start with a '{'"
+                + "in arguments: "
+                + str(sockaddr_args)
+            )
 
         # and the last one should end with a '}'
-        while True:
+            while True:
 
-            # keep extracting tokens until the closing curly bracket is found
-            sockaddr_args.append(string_args.pop(0))
+                # keep extracting tokens until the closing curly bracket is found
+                sockaddr_args.append(string_args.pop(0))
 
-            if sockaddr_args[-1].endswith("}"):
-                break
+                if sockaddr_args[-1].endswith("}"):
+                    break
 
-        # Lets use these arguments to construct the value of the Sockaddr object.
-        self.value = []
+       
 
-        # first item must show the sock address family
-        sa_family = sockaddr_args.pop(0)
-        self.value.append(SockFamily(sa_family))
+            # first item must show the sock address family
+            sa_family = sockaddr_args.pop(0)
+            self.value.append(SockFamily(sa_family))
 
-        if sa_family.endswith("_FILE"):
-            # sockaddr should include a path.
-            # 14037 connect(6, {sa_family=AF_FILE, path=@"/tmp/.X11-unix/X0"}, 20 )= 0
-            self.value.append(SockPath(sockaddr_args.pop(0)))
-        elif sa_family.endswith("_LOCAL"):
-            # sockaddr should include a path.
-            # 11597 connect(4, {sa_family=AF_LOCAL, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
-            self.value.append(SockPath(sockaddr_args.pop(0)))
-        elif sa_family.endswith("_UNSPEC"):
-            # sockaddr should include data bytes.
-            # 11597 connect(3, {sa_family=AF_UNSPEC, sa_data="\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16) = 0
-            self.value.append(SockData(sockaddr_args.pop(0)))
-        elif sa_family.endswith("_INET"):
-            # sockaddr should include IP and port
-            # 7123  bind(3, {sa_family=AF_INET, sin_port=htons(25588),
-            #                        sin_addr=inet_addr("127.0.0.1")}, 16) = 0
-            self.value.append(SockPort(sockaddr_args.pop(0)))
-            self.value.append(SockIP(sockaddr_args.pop(0)))
-        elif sa_family.endswith("_NETLINK"):
-            # sockaddr should include pid and groups
-            # 11597 bind(3, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
-            self.value.append(SockPid(sockaddr_args.pop(0)))
-            self.value.append(SockGroups(sockaddr_args.pop(0)))
-        else:
-            if DEBUG:
-                print(
-                    'Socket address family "'
-                    + sa_family
-                    + '" of Sockaddr structure not fully parsed'
-                )
+            if sa_family.endswith("_FILE"):
+                # sockaddr should include a path.
+                # 14037 connect(6, {sa_family=AF_FILE, path=@"/tmp/.X11-unix/X0"}, 20 )= 0
+                self.value.append(SockPath(sockaddr_args.pop(0)))
+            elif sa_family.endswith("_LOCAL"):
+                # sockaddr should include a path.
+                # 11597 connect(4, {sa_family=AF_LOCAL, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+                self.value.append(SockPath(sockaddr_args.pop(0)))
+            elif sa_family.endswith("_UNSPEC"):
+                # sockaddr should include data bytes.
+                # 11597 connect(3, {sa_family=AF_UNSPEC, sa_data="\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16) = 0
+                self.value.append(SockData(sockaddr_args.pop(0)))
+            elif sa_family.endswith("_INET"):
+                # sockaddr should include IP and port
+                # 7123  bind(3, {sa_family=AF_INET, sin_port=htons(25588),
+                #                        sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+                self.value.append(SockPort(sockaddr_args.pop(0)))
+                self.value.append(SockIP(sockaddr_args.pop(0)))
+            elif sa_family.endswith("_NETLINK"):
+                # sockaddr should include pid and groups
+                # 11597 bind(3, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+                self.value.append(SockPid(sockaddr_args.pop(0)))
+                self.value.append(SockGroups(sockaddr_args.pop(0)))
+            else:
+                if DEBUG:
+                    print(
+                        'Socket address family "'
+                        + sa_family
+                        + '" of Sockaddr structure not fully parsed'
+                    )
 
-            while len(sockaddr_args) > 0:
-                self.value.append(sockaddr_args.pop(0))
+                while len(sockaddr_args) > 0:
+                    self.value.append(sockaddr_args.pop(0))
 
         # there should be no more items in the sockaddr_args list
         assert (
