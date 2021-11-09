@@ -52,6 +52,8 @@ class UnimplementedType(ParsingClass):
 class MissingValue(ParsingClass):
     def __init__(self, ev, string_args):
         self.expected_value = ev
+        #addition
+        self.value=self.expected_value
         try:
             # this can happen when a structure is not dereferenced.
             self.given_value = string_args[0]
@@ -459,7 +461,7 @@ class Sockaddr(ParsingClass):
         sockaddr_args.append(string_args.pop(0))
          # Lets use these arguments to construct the value of the Sockaddr object.
         #check if sockaddre is not empty
-        if sockaddr_args[0]=="NULL":
+        if sockaddr_args[-1]=="NULL":
             self.value = "NULL"
             return
         #otherwise
@@ -774,7 +776,7 @@ def _cast_syscall_arg(syscall_name, definition_parameter, string_args):
         # Example:
         # 14037 recv(6, 0xb7199058, 4096, 0)      = -1 EAGAIN
         return MissingValue(definition_parameter, string_args)
-
+                #recvfrom with a null parameter
     return arg
 
 

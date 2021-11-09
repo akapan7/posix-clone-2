@@ -569,3 +569,32 @@ class TestWait:
         assert wait_call.args[2].expected_value.name == "options"
         assert wait_call.args[3].expected_value.pointer == True
         assert wait_call.ret == None
+        
+# 14037 recv(6, 0xb7199058, 4096, 0)      = -1 EAGAIN
+# 20645 recvfrom(7, 0x7ffd1481ba50, 256, 0, NULL, NULL) = -1 ENOTCONN (Transport endpoint is not connected)
+
+class TestRecv:
+    def test_recv(self):
+        strace_path = get_test_data_path("recv.strace")
+        syscall_definitions = get_test_data_path("syscall_definitions.pickle")
+        t = Trace.Trace(strace_path, syscall_definitions)
+        recv_call = t.syscalls[0]
+        #20645 recv(6, 0xb7199058, 4096, 0)      = -1 EAGAIN
+        assert recv_call.args[0].value == 6
+        assert recv_call.args[1].value == "0xb7199058"
+        assert recv_call.args[2].value == "4096"
+        assert recv_call.args[3].value == ['0']
+        assert recv_call.ret == (-1, "EAGAIN")
+
+    def test_recvfrom(self):
+        strace_path = get_test_data_path("recv.strace")
+        syscall_definitions = get_test_data_path("syscall_definitions.pickle")
+        t = Trace.Trace(strace_path, syscall_definitions)
+        recvfrom_call = t.syscalls[1]
+        #20645 recvfrom(7, 0x7ffd1481ba50, 256, 0, NULL, NULL) = -1 ENOTCONN (Transport endpoint is not connected)
+        assert recvfrom_call.args[0].value == 7
+        assert recvfrom_call.args[1].value == "0x7ffd1481ba50"
+        assert recvfrom_call.args[2].value == "256"
+        assert recvfrom_call.args[3].value == []
+        assert recvfrom_call.args[4].value == 'NULL'
+        assert recvfrom_call.ret == (-1, "ENOTCONN")
